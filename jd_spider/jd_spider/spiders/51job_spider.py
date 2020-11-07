@@ -2,6 +2,7 @@ from scrapy import Spider, Request
 from jd_spider.items import JDItem, WuYiJDItem
 import json
 import re
+import os
 
 """
 wuyi job website's search function works well, and ensure the result content will have the exact search words
@@ -12,12 +13,12 @@ class WuYiJDSpider(Spider):
     name="wuyi_job_spider"
     gender="uni"
     # initialize start_urls attributes in children class
-    start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E5%25A5%25B3%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    # start_urls : [str]
     def parse(self, response):
        """find the next url"""
        for p in response.css("p.t1"):
            url = p.css("span a::attr(href)").get()
-           with open("./output/wuyi_urls_"+self.gender+".txt", "a") as f:
+           with open(os.path.dirname(os.path.abspath(__file__))+"/output/wuyi_urls_"+self.gender+".txt", "a") as f:
                f.write(url)
                f.write("\n")              
            yield Request(url, callback=self.parse_content)
@@ -89,7 +90,8 @@ class WuYiJDSpider(Spider):
         jd_item["age_requirement"] = ""
         jd_item["jd_date"] = jd_publish_date
     
-        yield jd_item
+        if descrimination_content:
+            yield jd_item
 
 
 class WuYiJDUrlSpider(Spider):
