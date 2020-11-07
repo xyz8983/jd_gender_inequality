@@ -1,6 +1,7 @@
 from scrapy import Spider, Request
 from jd_spider.items import LiePinJDItem, JDItem
 import json
+import os
 
 class LiePinJDUrlSpider(Spider):
     name="step_one_liepin_jd_urls"
@@ -42,15 +43,15 @@ class LiepinJDSpider(Spider):
         for job_list in job_listings:
             url = job_list.css("div.job-info h3 a::attr(href)").get()
             with open("./liepin_urls_"+self.gender+".txt", "a") as f:
-                f.write(url)
-                f.write("\n")  
+                # f.write(url)
+                # f.write("\n")
+                f.write(url+"\n")  
             yield Request(url, callback=self.parse_content)
         # next page should be li with text "next page"
         next_page = response.xpath("//div[@class='pagerbar']/a[contains(text(), '下一页')]/@href").get()
         base_url = "https://www.liepin.com"
         if next_page:
             yield Request(base_url+next_page, callback=self.parse)
-    
     
     def parse_content(self, response):
         """parse the jd page"""
@@ -135,3 +136,45 @@ class LiePinJDSpiderMale(LiepinJDSpider):
         "https://www.liepin.com/zhaopin/?industries=&subIndustry=&dqs=&salary=&jobKind=&pubTime=&compkind=&compscale=&searchType=1&isAnalysis=&sortFlag=15&d_headId=1a938bf2d0fae20cafa4498873a66396&d_ckId=1a938bf2d0fae20cafa4498873a66396&d_sfrom=search_prime&d_curPage=0&d_pageSize=40&siTag=wSCrzhkotIBcV9OGxXD1rg%7EfA9rXquZc5IkJpXC-Ycixw&key=%E7%94%B7%E7%94%9F%E4%BC%98%E5%85%88"
     ]
     gender_desc_keywords = ['男生优先', '男性优先', '限男', '男生，']
+    
+class LiePinJDSpiderMale_two(LiepinJDSpider):
+    """the urls crawling job gets back result but the actual parsing job is forced to be separated"""
+    name = "liepin_job_spider_male_two"
+    start_urls = None
+    gender = "male"
+    gender_desc_keywords = ['男生', '男性','优先', '限男', '男生，']
+    def start_requests(self):
+        """
+        read liepiin urls file 
+        used when crawling urls and crawling contents are forced to be separated.
+        """
+        # relative path wont work
+        with open(os.path.dirname(os.path.abspath(__file__))+"/output/liepin_urls_male.txt", "r") as f:
+            data = f.readlines()
+        for url in data:
+            try:
+                yield Request(url=url, callback=self.parse_content)
+            except:
+                return   
+    def parse(self, response):
+        pass
+class LiePinJDSpiderFemale_two(LiepinJDSpider):
+    name = "liepin_job_spider_female_two"
+    start_urls = None
+    gender = "female" 
+    gender_desc_keywords = ['女生优先', '女性','优先', '限女', '女生，']
+    def start_requests(self):
+        """
+        read liepiin urls file 
+        used when crawling urls and crawling contents are forced to be separated.
+        """
+        # relative path wont work
+        with open(os.path.dirname(os.path.abspath(__file__))+"/output/liepin_urls_female.txt", "r") as f:
+            data = f.readlines()
+        for url in data:
+            try:
+                yield Request(url=url, callback=self.parse_content)
+            except:
+                return   
+    def parse(self, response):
+        pass
