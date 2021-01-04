@@ -12,6 +12,7 @@ but the search words may not be in the JD part, maybe in keywords part, hence be
 class WuYiJDSpider(Spider):
     name="wuyi_job_spider"
     gender="uni"
+    gender_desc_keywords = []
     # initialize start_urls attributes in children class
     # start_urls : [str]
     def parse(self, response):
@@ -50,11 +51,15 @@ class WuYiJDSpider(Spider):
         jd_content = jd_content_dom.xpath("./descendant::*/text()[not(ancestor::div[@class='share'] or ancestor::div[@class='mt10'])] | ./text()").extract()  
         # TODO: remove 1. 2. or 1、2、 unnecesseary data
         job_description = [] # a list of string
+        descrimination_content = []
         for s in jd_content:
             if s.strip():
                 job_description.append(s.strip())
         # TODO: later process the descrimination text further: pattern: "(女|男).*优先"
-        descrimination_content = ' '.join([s for s in job_description if '女' in s or '男' in s]).strip()
+            if any(phrase in s for phrase in self.gender_desc_keywords):
+                descrimination_content.append(s.strip())    
+        descrimination_content = ' '.join(descrimination_content).strip()
+        # descrimination_content = ' '.join([s for s in job_description if '女' in s or '男' in s]).strip()
         # jd_item["job_type"] = jd_content_dom.css("p.fp a.tdn::text").get()
         job_type = jd_content_dom.xpath("./div[@class='mt10']/p/span[contains(text(), '职能类别')]/following-sibling::a/text()").extract()
         keywords = jd_content_dom.xpath("./div[@class='mt10']/p/span[contains(text(), '关键字')]/following-sibling::a/text()").extract()
@@ -120,11 +125,65 @@ class WuYiJDSpiderMale(WuYiJDSpider):
     name = "wuyi_job_spider_male"
     gender = "male"
     # initialize start_urls attributes in children class
-    start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E7%2594%25B7%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    # start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E7%2594%25B7%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    gender_desc_keywords = ['男生优先', '男性', '限男', '男生，']
+    def parse(self, response):
+        pass
+    def start_requests(self):
+        """
+        read wuyi jib urls file 
+        used when crawling urls and crawling contents are forced to be separated.
+        """
+        # relative path wont work
+        with open(os.path.dirname(os.path.abspath(__file__))+"/output/wuyi_urls_male.txt", "r") as f:
+            data = f.readlines()
+        for url in data:
+            try:
+                yield Request(url=url, callback=self.parse_content)
+            except:
+                return   
     
 class WuYiJDSpiderFemale(WuYiJDSpider):
     """read the json file to get all urls, request each jd url to parse the content"""
     name = "wuyi_job_spider_female"
     gender = "female"
+    gender_desc_keywords = ['女生优先', '女性', '限女', '女生，']
     # initialize start_urls attributes in children class
-    start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E5%25A5%25B3%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    # start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E5%25A5%25B3%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    def parse(self, response):
+        pass
+    def start_requests(self):
+        """
+        read wuyi jib urls file 
+        used when crawling urls and crawling contents are forced to be separated.
+        """
+        # relative path wont work
+        with open(os.path.dirname(os.path.abspath(__file__))+"/output/wuyi_urls_female.txt", "r") as f:
+            data = f.readlines()
+        for url in data:
+            try:
+                yield Request(url=url, callback=self.parse_content)
+            except:
+                return   
+class WuYiJDSpiderMalePrev(WuYiJDSpider):
+    """the json urls file is from 4 months ago, where the word 男生优先 is replaced by ***优先, maybe the search engine has identified my search pattern and try to avoid my crawling?"""
+    name = "wuyi_job_spider_male_prev"
+    gender = "male"
+    # initialize start_urls attributes in children class
+    # start_urls = ["https://search.51job.com/list/000000,000000,0000,00,9,99,%25E7%2594%25B7%25E7%2594%259F%25E4%25BC%2598%25E5%2585%2588,2,1.html"]
+    gender_desc_keywords = ['***优先', '男生优先', '男性', '限男', '男生，']
+    def parse(self, response):
+        pass
+    def start_requests(self):
+        """
+        read wuyi jib urls file 
+        used when crawling urls and crawling contents are forced to be separated.
+        """
+        # relative path wont work
+        with open(os.path.dirname(os.path.abspath(__file__))+"/output/previous_wuyi_male_urls.json", "r") as f:
+            data = json.load(f)
+        try:
+            for item in data:
+                yield Request(url=item.get('url'), callback=self.parse_content)
+        except:
+            return    
