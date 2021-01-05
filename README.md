@@ -3,7 +3,13 @@ In some job postings, the contents contains gender discrimination words such as 
 
 #### Data Collection
 ##### Crawling and Parsing
-Using Scrapy Spiders to crawl and parse job posting contents from several recruiting websites
+Using Scrapy Spiders to crawl and parse job posting contents from several recruiting websites  
+Each recruiting website has a corresponding Spider class due to different html structure of different websites.
+
+Enter the jd_spider directory then execute the following command to start the crawling job.   
+`scrapy crawl <spider_class_name> --output=<output_path>`  
+Example:
+`scrapy crawl a_spider --output=./jd_spider/spiders/output/test.json`
 
 ##### Data fields 
 Please check jd_spider/spiders/items.py for details
@@ -33,8 +39,13 @@ Each recruiting website will have a separate spider job due to the different web
 - urls for "female first" job posts
 - data for "female first" job posts
 
-All Data is stored in a sqlite database, please using the following commands to check the table
-start sqlite3 command prompt `sqlite3`
-open db file `.open job_description.db`
-listing all the table schemas `.tables`
+All Data is stored in a sqlite database, please using the following commands to check the table  
+(or consider redis?)
+start sqlite3 command prompt `sqlite3`  
+open db file `.open job_description.db`  
+listing all the table schemas `.tables`  
+
+todo:
+- concatenate all json file into a pandas df then save it into a picle file, add platform when making pandas df
+- 
 
