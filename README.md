@@ -39,13 +39,7 @@ Each recruiting website will have a separate spider job due to the different web
 - urls for "female first" job posts
 - data for "female first" job posts
 
-All Data is stored in a sqlite database, please using the following commands to check the table  
-(or consider redis?)
-start sqlite3 command prompt `sqlite3`  
-open db file `.open job_description.db`  
-listing all the table schemas `.tables`  
+Raw json data is in `jd_spider/spiders/output` folder, the processed dataframes are stored in
+`data` folder.
 
-todo:
-- concatenate all json file into a pandas df then save it into a picle file, add platform when making pandas df
-- 
 
